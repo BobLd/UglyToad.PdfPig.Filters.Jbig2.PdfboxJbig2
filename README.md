@@ -1,0 +1,1 @@
+# UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2
