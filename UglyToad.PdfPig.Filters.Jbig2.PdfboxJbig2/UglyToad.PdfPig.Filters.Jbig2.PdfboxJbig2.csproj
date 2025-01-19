@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net462;net471;net6.0;net8.0</TargetFrameworks>
+		<LangVersion>12</LangVersion>
+		<Version>0.1.10.1-alpha001</Version>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</IsAotCompatible>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<Authors>BobLd</Authors>
+		<PackageTags>PDF;Reader;Document;Adobe;PDFBox;PdfPig;pdf;file;C#;dotnet;.NET;image;jbig;jbig2</PackageTags>
+		<RepositoryUrl>https://github.com/BobLd/UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/BobLd/UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2</PackageProjectUrl>
+		<Description>PdfPig implementation of the JBIG2 filter, based on pdfbox-jbig2.</Description>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+		<PackageId>PdfPig.Filters.Jbig2.PdfboxJbig2</PackageId>
+		<Title>PdfPig.Filters.Jbig2.PdfboxJbig2</Title>
+		<Product>PdfPig.Filters.Jbig2.PdfboxJbig2</Product>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<PackageIcon>pdfpig.png</PackageIcon>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\documentation\pdfpig.png">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+		<None Include="..\README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="PdfPig" Version="0.1.10-alpha-20250122-52098" />
+	</ItemGroup>
+
+</Project>
