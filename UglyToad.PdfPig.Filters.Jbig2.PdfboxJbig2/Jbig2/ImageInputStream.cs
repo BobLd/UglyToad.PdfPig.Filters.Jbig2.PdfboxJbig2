@@ -18,12 +18,10 @@
         /// from a given byte array.
         /// </summary>
         /// <param name="bytes"></param>
-        public ImageInputStream(byte[] bytes)
-            : this(new MemoryStream(bytes ??
-                throw new ArgumentNullException(nameof(bytes))))
-        {
-        }
-
+        public ImageInputStream(ReadOnlySpan<byte> bytes)
+            : this(GetMemoryStream(bytes))
+        { }
+        
         /// <summary>
         /// Constructs a <see cref="ImageInputStream"/> that will read the image data
         /// from a given <see cref="Stream"/>.
@@ -80,6 +78,17 @@
         public override void Dispose()
         {
             inner.Dispose();
+        }
+
+        private static MemoryStream GetMemoryStream(ReadOnlySpan<byte> bytes)
+        {
+            var memoryStream = new MemoryStream(bytes.Length);
+            foreach (var b in bytes)
+            {
+                memoryStream.WriteByte(b);
+            }
+            memoryStream.Position = 0;
+            return memoryStream;
         }
     }
 }

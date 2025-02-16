@@ -53,10 +53,10 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2
             Jbig2Document globalDocument = null;
             if (decodeParms.TryGet(NameToken.Jbig2Globals, out StreamToken tok))
             {
-                globalDocument = new Jbig2Document(new ImageInputStream(tok.Data.ToArray()));
+                globalDocument = new Jbig2Document(new ImageInputStream(tok.Data.Span));
             }
 
-            using (var jbig2 = new Jbig2Document(new ImageInputStream(input.ToArray()),
+            using (var jbig2 = new Jbig2Document(new ImageInputStream(input),
                        globalDocument != null ? globalDocument.GlobalSegments : null))
             {
                 var page = jbig2.GetPage(1);
