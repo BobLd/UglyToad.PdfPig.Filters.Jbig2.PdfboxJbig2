@@ -66,6 +66,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Tests
             // Add the full path back on, we removed it so we could see it in the test explorer.
             documentName = Path.Combine(DocumentFolder.Value, documentName);
 
+            bool hasRenderedJbig2 = false;
             using (var document = PdfDocument.Open(documentName, parsingOption))
             {
                 for (var p = 0; p < document.NumberOfPages; p++)
@@ -81,6 +82,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Tests
                             Assert.True(image.TryGetPng(out var png));
 
                             File.WriteAllBytes(Path.Combine("images", $"{docName}_{p}_{i++}.png"), png);
+                            hasRenderedJbig2 = true;
                         }
                         else if (image.ImageDictionary.TryGet(NameToken.F, out NameToken filter2) &&
                                  filter2.Data.Equals(NameToken.Jbig2Decode.Data))
@@ -88,7 +90,13 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Tests
                             Assert.True(image.TryGetPng(out var png));
 
                             File.WriteAllBytes(Path.Combine("images", $"{docName}_{p}_{i++}.png"), png);
+                            hasRenderedJbig2 = true;
                         }
+                    }
+
+                    if (hasRenderedJbig2)
+                    {
+                        return;
                     }
                 }
             }
