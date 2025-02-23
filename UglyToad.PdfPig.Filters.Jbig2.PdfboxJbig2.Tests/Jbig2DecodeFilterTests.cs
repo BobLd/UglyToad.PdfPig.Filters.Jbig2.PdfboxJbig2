@@ -19,7 +19,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Tests
             };
 
             var expectedBytes = ImageHelpers.LoadFileBytes("sampledata_page1.jb2-decoded.bin");
-            var decodedBytes = filter.Decode(encodedImageBytes, new DictionaryToken(dictionary), 0);
+            var decodedBytes = filter.Decode(encodedImageBytes, new DictionaryToken(dictionary), TestFilterProvider.Instance, 0);
 
             Assert.True(expectedBytes.AsSpan().SequenceEqual(decodedBytes.Span));
         }
@@ -43,7 +43,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Tests
             };
 
             var expectedBytes = ImageHelpers.LoadFileBytes("img-refs-globals-decoded.bin", isCompressed: true);
-            var decodedBytes = filter.Decode(encodedImageBytes, new DictionaryToken(dictionary), 0);
+            var decodedBytes = filter.Decode(encodedImageBytes, new DictionaryToken(dictionary), TestFilterProvider.Instance, 0);
 
             Assert.True(expectedBytes.AsSpan().SequenceEqual(decodedBytes.Span));
         }

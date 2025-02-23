@@ -36,6 +36,14 @@
         public override void Seek(long pos)
         {
             SetBitOffset(0);
+            if (pos > inner.Length)
+            {
+                // As per the method documentation:
+                // "It is legal to seek past the end of the file; an EndOfStreamException will be thrown only if a read is performed."
+                // As a result, we need to prevent exception occuring here. The exception will be thrown on the Read() call.
+                
+                pos = inner.Length;
+            }
             inner.Position = pos;
         }
 

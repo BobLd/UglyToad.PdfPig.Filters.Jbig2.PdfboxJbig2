@@ -1,7 +1,5 @@
-﻿using System.Diagnostics;
-using UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2;
+﻿using UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2;
 using UglyToad.PdfPig.Tokens;
-using UglyToad.PdfPig.Util;
 
 namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2
 {
@@ -15,49 +13,18 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2
         /// <inheritdoc />
         public bool IsSupported => true;
 
-        [Conditional("DEBUG")]
-        private static void ValidateRefs(DictionaryToken dictionaryToken)
-        {
-            if (dictionaryToken.GetObjectOrDefault(NameToken.Jbig2Globals) is IndirectReferenceToken)
-            {
-                throw new Exception($"Got a IndirectReferenceToken for '{NameToken.Jbig2Globals}'.");
-            }
-
-            if (dictionaryToken.GetObjectOrDefault(NameToken.ImageMask) is IndirectReferenceToken)
-            {
-                throw new Exception($"Got a IndirectReferenceToken for '{NameToken.ImageMask}'.");
-            }
-
-            if (dictionaryToken.GetObjectOrDefault(NameToken.Im) is IndirectReferenceToken)
-            {
-                throw new Exception($"Got a IndirectReferenceToken for '{NameToken.Im}'.");
-            }
-
-            if (dictionaryToken.GetObjectOrDefault(NameToken.DecodeParms, NameToken.Dp) is IndirectReferenceToken)
-            {
-                throw new Exception($"Got a IndirectReferenceToken for '{NameToken.Jbig2Globals}'.");
-            }
-
-            if (dictionaryToken.GetObjectOrDefault(NameToken.Filter, NameToken.F) is IndirectReferenceToken)
-            {
-                throw new Exception($"Got a IndirectReferenceToken for '{NameToken.Jbig2Globals}'.");
-            }
-        }
-
         /// <inheritdoc />
-        public ReadOnlyMemory<byte> Decode(ReadOnlySpan<byte> input, DictionaryToken streamDictionary, int filterIndex)
+        public ReadOnlyMemory<byte> Decode(ReadOnlySpan<byte> input, DictionaryToken streamDictionary,
+            IFilterProvider filterProvider, int filterIndex)
         {
-            ValidateRefs(streamDictionary);
-
             var decodeParms = DecodeParameterResolver.GetFilterParameters(streamDictionary, filterIndex);
-            Jbig2Document globalDocument = null;
-            if (decodeParms.TryGet(NameToken.Jbig2Globals, out StreamToken tok))
+            Jbig2Document? globalDocument = null;
+            if (decodeParms.TryGet(NameToken.Jbig2Globals, out StreamToken tok) && !tok.Data.IsEmpty)
             {
-                globalDocument = new Jbig2Document(new ImageInputStream(tok.Data.Span));
+                globalDocument = new Jbig2Document(new ImageInputStream(tok.Decode(filterProvider).Span));
             }
 
-            using (var jbig2 = new Jbig2Document(new ImageInputStream(input),
-                       globalDocument != null ? globalDocument.GlobalSegments : null))
+            using (var jbig2 = new Jbig2Document(new ImageInputStream(input), globalDocument?.GlobalSegments))
             {
                 var page = jbig2.GetPage(1);
                 var bitmap = page.GetBitmap();
