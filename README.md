@@ -4,6 +4,10 @@ Port to C# and PdfPig of the Java ImageIO plugin for the JBIG2 image format (see
 
 Original port done by @kasperdaff as part of a PR for PdfPig, see https://github.com/UglyToad/PdfPig/pull/338 and then https://github.com/UglyToad/PdfPig/pull/631
 
+## Other filters
+- DCT filter available here: https://github.com/BobLd/UglyToad.PdfPig.Filters.Dct.JpegLibrary
+- JPX filter available here: https://github.com/BobLd/UglyToad.PdfPig.Filters.Jpx.OpenJpegDotNet
+
 ## Usage
 ```csharp
 // Create your filter provider
