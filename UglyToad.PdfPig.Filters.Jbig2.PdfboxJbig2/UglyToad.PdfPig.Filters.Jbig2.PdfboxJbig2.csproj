@@ -27,6 +27,8 @@
 		<Product>PdfPig.Filters.Jbig2.PdfboxJbig2</Product>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<PackageIcon>pdfpig.png</PackageIcon>
+		<SignAssembly>True</SignAssembly>
+		<AssemblyOriginatorKeyFile>UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.snk</AssemblyOriginatorKeyFile>
 	</PropertyGroup>
 
 	<ItemGroup>
