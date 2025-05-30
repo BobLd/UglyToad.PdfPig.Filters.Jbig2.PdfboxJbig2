@@ -14,14 +14,14 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2
         public bool IsSupported => true;
 
         /// <inheritdoc />
-        public ReadOnlyMemory<byte> Decode(ReadOnlySpan<byte> input, DictionaryToken streamDictionary,
+        public Memory<byte> Decode(Memory<byte> input, DictionaryToken streamDictionary,
             IFilterProvider filterProvider, int filterIndex)
         {
             var decodeParms = DecodeParameterResolver.GetFilterParameters(streamDictionary, filterIndex);
             Jbig2Document? globalDocument = null;
             if (decodeParms.TryGet(NameToken.Jbig2Globals, out StreamToken tok) && !tok.Data.IsEmpty)
             {
-                globalDocument = new Jbig2Document(new ImageInputStream(tok.Decode(filterProvider).Span));
+                globalDocument = new Jbig2Document(new ImageInputStream(tok.Decode(filterProvider)));
             }
 
             using (var jbig2 = new Jbig2Document(new ImageInputStream(input), globalDocument?.GlobalSegments))

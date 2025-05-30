@@ -1,4 +1,6 @@
-﻿namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
+﻿using UglyToad.PdfPig.Core;
+
+namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
 {
     using System;
     using System.IO;
@@ -21,7 +23,16 @@
         public ImageInputStream(ReadOnlySpan<byte> bytes)
             : this(GetMemoryStream(bytes))
         { }
-        
+
+        /// <summary>
+        /// Constructs a <see cref="ImageInputStream"/> that will read the image data
+        /// from a given byte array.
+        /// </summary>
+        /// <param name="bytes"></param>
+        public ImageInputStream(ReadOnlyMemory<byte> bytes)
+            : this(bytes.AsReadOnlyMemoryStream())
+        { }
+
         /// <summary>
         /// Constructs a <see cref="ImageInputStream"/> that will read the image data
         /// from a given <see cref="Stream"/>.
