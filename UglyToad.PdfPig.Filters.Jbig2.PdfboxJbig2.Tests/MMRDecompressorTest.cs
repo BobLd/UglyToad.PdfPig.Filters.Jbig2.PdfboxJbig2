@@ -16,7 +16,7 @@
                 255, 255, 255, 0, 0, 0, 4, 68, 102, 102, 127
             };
 
-            var iis = new ImageInputStream(ImageHelpers.LoadFileBytes("sampledata.jb2"));
+            var iis = new ImageInputStream(ImageHelpers.LoadFileBytes("sampledata.jb2").AsMemory());
             // Sixth Segment (number 5)
             var sis = new SubInputStream(iis, 252, 38);
             var mmrd = new MMRDecompressor(16 * 4, 4, sis);
