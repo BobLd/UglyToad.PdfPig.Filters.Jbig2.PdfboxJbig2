@@ -9,7 +9,7 @@
         [Fact]
         public void ParseHeaderTest()
         {
-            var iis = new ImageInputStream(ImageHelpers.LoadFileBytes("sampledata.jb2"));
+            var iis = new ImageInputStream(ImageHelpers.LoadFileBytes("sampledata.jb2").AsMemory());
 
             // Twelfth Segment (number 11)
             var sis = new SubInputStream(iis, 523, 35);

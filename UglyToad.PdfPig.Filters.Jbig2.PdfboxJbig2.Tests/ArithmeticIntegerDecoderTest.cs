@@ -9,7 +9,7 @@
         [Fact]
         public void DecodeTest()
         {
-            var iis = new ImageInputStream(ImageHelpers.LoadFileBytes("arith-encoded-testsequence.bin"));
+            var iis = new ImageInputStream(ImageHelpers.LoadFileBytes("arith-encoded-testsequence.bin").AsMemory());
             var ad = new ArithmeticDecoder(iis);
             var aid = new ArithmeticIntegerDecoder(ad);
 
