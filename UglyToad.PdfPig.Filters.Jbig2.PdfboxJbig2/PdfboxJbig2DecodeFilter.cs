@@ -33,7 +33,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2
 
                 globalDocument?.Dispose();
 
-                if (pageInfo.DefaultPixelValue == 0 && !IsImageMask(streamDictionary))
+                if (pageInfo.DefaultPixelValue == 0)
                 {
                     return bitmap.ByteArray;
                 }
@@ -53,6 +53,11 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2
 
         private static bool IsImageMask(DictionaryToken streamDictionary)
         {
+            if (streamDictionary.TryGet(NameToken.Mask, out ArrayToken _))
+            {
+                return true;
+            }
+
             if (streamDictionary.TryGet(NameToken.ImageMask, out BooleanToken isImageMask))
             {
                 return isImageMask.Data;
