@@ -50,25 +50,5 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2
                 return data;
             }
         }
-
-        private static bool IsImageMask(DictionaryToken streamDictionary)
-        {
-            if (streamDictionary.TryGet(NameToken.Mask, out ArrayToken _))
-            {
-                return true;
-            }
-
-            if (streamDictionary.TryGet(NameToken.ImageMask, out BooleanToken isImageMask))
-            {
-                return isImageMask.Data;
-            }
-
-            if (streamDictionary.TryGet(NameToken.Im, out BooleanToken isIm))
-            {
-                return isIm.Data;
-            }
-
-            return false;
-        }
     }
 }
