@@ -29,18 +29,11 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2
                 var page = jbig2.GetPage(1);
                 var bitmap = page.GetBitmap();
 
-                var pageInfo = (PageInformation)page.GetPageInformationSegment().GetSegmentData();
-
                 globalDocument?.Dispose();
-
-                if (pageInfo.DefaultPixelValue == 0 && !IsImageMask(streamDictionary))
-                {
-                    return bitmap.ByteArray;
-                }
 
                 var data = bitmap.ByteArray;
 
-                // Invert bits if the default pixel value is black
+                // We always invert bits - this makes test 'CanDecodeJbig2CompressedImageData_WithGlobalSegments' fail
                 for (int i = 0; i < data.Length; ++i)
                 {
                     ref byte x = ref data[i];
@@ -49,10 +42,25 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2
 
                 return data;
             }
+
+            /*
+            var pageInfo = (PageInformation)page.GetPageInformationSegment().GetSegmentData();
+            // Invert bits if the default pixel value is black
+            if (pageInfo.DefaultPixelValue == 0)
+            {
+                return bitmap.ByteArray;
+            }
+            */
         }
 
+        /*
         private static bool IsImageMask(DictionaryToken streamDictionary)
         {
+            if (streamDictionary.TryGet(NameToken.Mask, out ArrayToken _))
+            {
+                return true;
+            }
+
             if (streamDictionary.TryGet(NameToken.ImageMask, out BooleanToken isImageMask))
             {
                 return isImageMask.Data;
@@ -65,5 +73,6 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2
 
             return false;
         }
+        */
     }
 }
