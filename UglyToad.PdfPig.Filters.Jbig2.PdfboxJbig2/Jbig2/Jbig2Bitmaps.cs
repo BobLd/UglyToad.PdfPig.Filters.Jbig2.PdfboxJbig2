@@ -10,7 +10,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
         /// <param name="roi">A <see cref="Jbig2Rectangle"/> that specifies the requested image section.</param>
         /// <param name="src">src the given bitmap</param>
         /// <returns>A <see cref="Jbig2Bitmap"/> that represents the requested image section.</returns>
-        public static Jbig2Bitmap Extract(Jbig2Rectangle roi, Jbig2Bitmap src)
+        public static Jbig2Bitmap Extract(in Jbig2Rectangle roi, Jbig2Bitmap src)
         {
             var dst = new Jbig2Bitmap(roi.Width, roi.Height);
 

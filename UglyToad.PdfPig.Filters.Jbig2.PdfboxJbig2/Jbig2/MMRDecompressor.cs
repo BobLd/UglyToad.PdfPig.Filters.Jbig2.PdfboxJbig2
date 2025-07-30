@@ -81,7 +81,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
             /// Fill up the code word in little endian mode. This is a hotspot, therefore the algorithm is heavily optimised.
             /// For the frequent cases (i.e. short words) we try to get away with as little work as possible.
             /// This method returns code words of 16 bits, which are aligned to the 24th bit.The lowest 8 bits are used as a
-            /// "queue" of bits so that an access to the actual data is only needed, when this queue becomes empty.
+            /// "queue" of bits so that access to the actual data is only needed, when this queue becomes empty.
             /// </summary>
             private int UncompressGetNextCodeLittleEndian()
             {
@@ -152,8 +152,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
                 }
                 catch (IOException e)
                 {
-                    throw new IndexOutOfRangeException("Corrupted RLE data caused by an IOException while reading raw data: "
-                                                       + e.ToString());
+                    throw new IndexOutOfRangeException($"Corrupted RLE data caused by an IOException while reading raw data: {e}");
                 }
             }
 
@@ -176,7 +175,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
                     if (bufferTop > -1 && bufferTop < 3)
                     {
                         // CK: if filling degree is too small,
-                        // smoothly fill up to the next three bytes or substitute with with
+                        // smoothly fill up to the next three bytes or substitute with
                         // empty bytes
                         int read = 0;
                         while (bufferTop < 3)
@@ -585,7 +584,6 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
             byte targetByteValue = 0;
             for (int index = 0; index < count; index++)
             {
-
                 int offset = currentOffsets[index];
                 byte value;
 
@@ -700,8 +698,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
                 else
                 {
                     // init second level table
-                    int firstLevelIndex = (int)((uint)code.CodeWord >> code.BitLength
-                            - FIRST_LEVEL_TABLE_SIZE);
+                    int firstLevelIndex = code.CodeWord >>> code.BitLength - FIRST_LEVEL_TABLE_SIZE;
 
                     if (firstLevelTable[firstLevelIndex] == null)
                     {

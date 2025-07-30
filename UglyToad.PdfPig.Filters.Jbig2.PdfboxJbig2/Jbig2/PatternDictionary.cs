@@ -136,7 +136,7 @@
             {
                 // 4) a) Retrieve a pattern bitmap by extracting it out of the collective bitmap
                 Jbig2Rectangle roi = new Jbig2Rectangle(HdpWidth * gray, 0, HdpWidth, HdpHeight);
-                Jbig2Bitmap patternBitmap = Jbig2Bitmaps.Extract(roi, collectiveBitmap);
+                Jbig2Bitmap patternBitmap = Jbig2Bitmaps.Extract(in roi, collectiveBitmap);
                 patterns.Add(patternBitmap);
 
                 // 4) b)

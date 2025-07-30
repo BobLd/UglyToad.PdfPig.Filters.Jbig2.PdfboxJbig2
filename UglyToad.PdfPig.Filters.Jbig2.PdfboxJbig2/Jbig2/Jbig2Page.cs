@@ -38,7 +38,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
         /// <returns>The retrieved <see cref="SegmentHeader"/> or null.</returns>
         internal SegmentHeader GetSegment(int number)
         {
-            SegmentHeader s = segments.ContainsKey(number) ? segments[number] : null;
+            SegmentHeader s = segments.TryGetValue(number, out var segment) ? segment : null;
 
             return s ?? document?.GetGlobalSegment(number);
         }

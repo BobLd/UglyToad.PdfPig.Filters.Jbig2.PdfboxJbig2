@@ -83,14 +83,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
                 int amountOfGbAt;
                 if (GbTemplate == 0)
                 {
-                    if (UseExtTemplates)
-                    {
-                        amountOfGbAt = 12;
-                    }
-                    else
-                    {
-                        amountOfGbAt = 4;
-                    }
+                    amountOfGbAt = UseExtTemplates ? 12 : 4;
                 }
                 else
                 {
@@ -128,71 +121,73 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
         /// <returns>The decoded <see cref="Jbig2Bitmap"/>.</returns>
         public Jbig2Bitmap GetRegionBitmap()
         {
-            if (regionBitmap is null)
+            if (regionBitmap is not null)
             {
-                if (IsMMREncoded)
+                return regionBitmap;
+            }
+            
+            if (IsMMREncoded)
+            {
+                // MMR DECODER CALL
+                if (mmrDecompressor is null)
                 {
-                    // MMR DECODER CALL
-                    if (mmrDecompressor is null)
+                    mmrDecompressor = new MMRDecompressor(RegionInfo.BitmapWidth,
+                        RegionInfo.BitmapHeight,
+                        new SubInputStream(subInputStream, dataOffset, dataLength));
+                }
+
+                // 6.2.6
+                regionBitmap = mmrDecompressor.Uncompress();
+
+            }
+            else
+            {
+                // ARITHMETIC DECODER PROCEDURE for generic region segments
+                UpdateOverrideFlags();
+
+                // 6.2.5.7 - 1)
+                int ltp = 0;
+
+                arithDecoder ??= new ArithmeticDecoder(subInputStream);
+                cx ??= new CX(65536, 1);
+
+                // 6.2.5.7 - 2)
+                regionBitmap = new Jbig2Bitmap(RegionInfo.BitmapWidth, RegionInfo.BitmapHeight);
+
+                int paddedWidth = regionBitmap.Width + 7 & -8;
+
+                // 6.2.5.7 - 3
+                for (int line = 0; line < regionBitmap.Height; line++)
+                {
+                    // 6.2.5.7 - 3 b)
+                    if (IsTPGDon)
                     {
-                        mmrDecompressor = new MMRDecompressor(RegionInfo.BitmapWidth,
-                                RegionInfo.BitmapHeight,
-                                new SubInputStream(subInputStream, dataOffset, dataLength));
+                        ltp ^= DecodeSLTP();
                     }
 
-                    // 6.2.6
-                    regionBitmap = mmrDecompressor.Uncompress();
-
-                }
-                else
-                {
-                    // ARITHMETIC DECODER PROCEDURE for generic region segments
-                    UpdateOverrideFlags();
-
-                    // 6.2.5.7 - 1)
-                    int ltp = 0;
-
-                    arithDecoder ??= new ArithmeticDecoder(subInputStream);
-                    cx ??= new CX(65536, 1);
-
-                    // 6.2.5.7 - 2)
-                    regionBitmap = new Jbig2Bitmap(RegionInfo.BitmapWidth, RegionInfo.BitmapHeight);
-
-                    int paddedWidth = regionBitmap.Width + 7 & -8;
-
-                    // 6.2.5.7 - 3
-                    for (int line = 0; line < regionBitmap.Height; line++)
+                    // 6.2.5.7 - 3 c)
+                    if (ltp == 1)
                     {
-                        // 6.2.5.7 - 3 b)
-                        if (IsTPGDon)
+                        if (line > 0)
                         {
-                            ltp ^= DecodeSLTP();
+                            CopyLineAbove(line);
                         }
-
-                        // 6.2.5.7 - 3 c)
-                        if (ltp == 1)
-                        {
-                            if (line > 0)
-                            {
-                                CopyLineAbove(line);
-                            }
-                        }
-                        else
-                        {
-                            // 3 d)
-                            // NOT USED ATM - If corresponding pixel of SKIP bitmap is 0, set
-                            // current pixel to 0. Something like that:
-                            // if (useSkip) {
-                            // for (int i = 1; i < rowstride; i++) {
-                            // if (skip[pixel] == 1) {
-                            // gbReg[pixel] = 0;
-                            // }
-                            // pixel++;
-                            // }
-                            // } else {
-                            DecodeLine(line, regionBitmap.Width, regionBitmap.RowStride, paddedWidth);
-                            // }
-                        }
+                    }
+                    else
+                    {
+                        // 3 d)
+                        // NOT USED ATM - If corresponding pixel of SKIP bitmap is 0, set
+                        // current pixel to 0. Something like that:
+                        // if (useSkip) {
+                        // for (int i = 1; i < rowstride; i++) {
+                        // if (skip[pixel] == 1) {
+                        // gbReg[pixel] = 0;
+                        // }
+                        // pixel++;
+                        // }
+                        // } else {
+                        DecodeLine(line, regionBitmap.Width, regionBitmap.RowStride, paddedWidth);
+                        // }
                     }
                 }
             }
@@ -1039,12 +1034,12 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
             RegionInfo.BitmapWidth = symWidth;
             RegionInfo.BitmapHeight = hcHeight;
 
-            if (null != cx)
+            if (cx is not null)
             {
                 this.cx = cx;
             }
 
-            if (null != arithmeticDecoder)
+            if (arithmeticDecoder is not null)
             {
                 arithDecoder = arithmeticDecoder;
             }

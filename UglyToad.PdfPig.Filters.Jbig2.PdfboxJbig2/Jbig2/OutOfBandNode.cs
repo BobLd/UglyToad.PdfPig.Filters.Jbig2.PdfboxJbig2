@@ -3,11 +3,11 @@
     using static HuffmanTable;
 
     /// <summary>
-    /// Represents an out of band node in a Huffman tree.
+    /// Represents an out-of-band node in a Huffman tree.
     /// </summary>
     internal sealed class OutOfBandNode : Node
     {
-        public OutOfBandNode(Code c)
+        public OutOfBandNode(Code _)
         {
         }
 

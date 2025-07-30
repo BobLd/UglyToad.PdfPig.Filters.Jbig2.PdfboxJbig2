@@ -159,7 +159,7 @@
         {
             if (bitOffset < 0 || bitOffset > 7)
             {
-                throw new ArgumentOutOfRangeException(nameof(bitOffset), "must be betwwen 0 and 7!");
+                throw new ArgumentOutOfRangeException(nameof(bitOffset), "must be between 0 and 7!");
             }
 
             this.bitOffset = bitOffset;

@@ -358,12 +358,12 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
 
                     refByteIndex++;
                 }
-                c1 |= (short)((int)((uint)w1 >> 7) & 0x07);
-                c2 |= (short)((int)((uint)w2 >> 7) & 0x07);
-                c3 |= (short)((int)((uint)w3 >> 7) & 0x07);
+                c1 |= (short)(w1 >>> 7 & 0x07);
+                c2 |= (short)(w2 >>> 7 & 0x07);
+                c3 |= (short)(w3 >>> 7 & 0x07);
             }
 
-            c4 = (short)(int)((uint)w4 >> 6);
+            c4 = (short)(w4 >>> 6);
             c5 = 0;
 
             int modBitsToTrim = (2 - modReferenceDX) % 8;
@@ -391,10 +391,10 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
                 int bit = arithDecoder.Decode(cx);
                 regionBitmap.SetPixel(x, lineNumber, (byte)bit);
 
-                c1 = (short)((c1 << 1 | 0x01 & (int)((uint)w1 >> 7)) & 0x07);
-                c2 = (short)((c2 << 1 | 0x01 & (int)((uint)w2 >> 7)) & 0x07);
-                c3 = (short)((c3 << 1 | 0x01 & (int)((uint)w3 >> 7)) & 0x07);
-                c4 = (short)((c4 << 1 | 0x01 & (int)((uint)w4 >> 7)) & 0x07);
+                c1 = (short)((c1 << 1 | 0x01 & w1 >>> 7) & 0x07);
+                c2 = (short)((c2 << 1 | 0x01 & w2 >>> 7) & 0x07);
+                c3 = (short)((c3 << 1 | 0x01 & w3 >>> 7) & 0x07);
+                c4 = (short)((c4 << 1 | 0x01 & w4 >>> 7) & 0x07);
                 c5 = (short)bit;
 
                 if ((x - referenceDX) % 8 == 5)
@@ -613,16 +613,16 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
 
                     // i)
                     int bitmapValue = context >> 4 & 0x1FF;
-
-                    if (bitmapValue == 0x1ff)
+                    switch (bitmapValue)
                     {
-                        isPixelTypicalPredicted = true;
-                        bit = 1;
-                    }
-                    else if (bitmapValue == 0x00)
-                    {
-                        isPixelTypicalPredicted = true;
-                        bit = 0;
+                        case 0x1ff:
+                            isPixelTypicalPredicted = true;
+                            bit = 1;
+                            break;
+                        case 0x00:
+                            isPixelTypicalPredicted = true;
+                            bit = 0;
+                            break;
                     }
 
                     if (!isPixelTypicalPredicted)
@@ -798,18 +798,20 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
                 }
             }
 
-            if (grAtOverride[1])
+            if (!grAtOverride[1])
             {
-                context &= 0xefff;
-                if (grAtY[1] == 0 && grAtX[1] >= -minorX)
-                {
-                    context |= (result >> 7 - (minorX + grAtX[1]) & 0x1) << 12;
-                }
-                else
-                {
-                    context |= GetPixel(referenceBitmap, x + grAtX[1] + referenceDX,
-                            y + grAtY[1] + referenceDY) << 12;
-                }
+                return context;
+            }
+            
+            context &= 0xefff;
+            if (grAtY[1] == 0 && grAtX[1] >= -minorX)
+            {
+                context |= (result >> 7 - (minorX + grAtX[1]) & 0x1) << 12;
+            }
+            else
+            {
+                context |= GetPixel(referenceBitmap, x + grAtX[1] + referenceDX,
+                    y + grAtY[1] + referenceDY) << 12;
             }
             return context;
         }
@@ -843,7 +845,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
                 bool isTPGRon, short[] grAtX, short[] grAtY)
         {
 
-            if (cx != null)
+            if (cx is not null)
             {
                 this.cx = cx;
             }

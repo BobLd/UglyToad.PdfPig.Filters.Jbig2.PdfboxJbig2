@@ -407,7 +407,6 @@
             {
                 long dT = DecodeDT();
                 stripT += dT;
-                long dfS;
 
                 // 3 c) symbol instances in the strip
                 bool first = true;
@@ -420,7 +419,7 @@
                     if (first)
                     {
                         // 6.4.7
-                        dfS = DecodeDfS();
+                        long dfS = DecodeDfS();
                         firstS += dfS;
                         currentS = firstS;
                         first = false;
@@ -1022,7 +1021,6 @@
 
             // 7)
             symbolCodeTable = new FixedSizeTable(sbSymCodes);
-
         }
 
         public void Init(SegmentHeader header, SubInputStream sis)

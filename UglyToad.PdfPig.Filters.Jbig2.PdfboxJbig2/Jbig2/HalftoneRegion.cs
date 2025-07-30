@@ -186,15 +186,15 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
 
         private List<Jbig2Bitmap> GetPatterns()
         {
-            var patterns = new List<Jbig2Bitmap>();
+            var patternsL = new List<Jbig2Bitmap>();
 
             foreach (SegmentHeader s in segmentHeader.RtSegments)
             {
                 PatternDictionary patternDictionary = (PatternDictionary)s.GetSegmentData();
-                patterns.AddRange(patternDictionary.GetDictionary());
+                patternsL.AddRange(patternDictionary.GetDictionary());
             }
 
-            return patterns;
+            return patternsL;
         }
 
 

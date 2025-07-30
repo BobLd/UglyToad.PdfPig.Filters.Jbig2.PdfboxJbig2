@@ -1,3 +1,5 @@
+using System.Buffers;
+
 namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
 {
     using System;
@@ -53,9 +55,9 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
             return rootNode.Decode(iis);
         }
 
-        public override sealed string ToString()
+        public sealed override string ToString()
         {
-            return rootNode + "\n";
+            return rootNode + Environment.NewLine;
         }
 
         public static string CodeTableToString(List<Code> codeTable)
@@ -64,7 +66,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
 
             foreach (var c in codeTable)
             {
-                sb.Append(c.ToString()).Append("\n");
+                sb.Append(c.ToString()).Append(Environment.NewLine);
             }
 
             return sb.ToString();
@@ -80,28 +82,52 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
                 maxPrefixLength = Math.Max(maxPrefixLength, c.PrefixLength);
             }
 
-            Span<int> lenCount = stackalloc int[maxPrefixLength + 1]; // TODO - stackalloc? (max 32)
-            foreach (Code c in codeTable)
-            {
-                lenCount[c.PrefixLength]++;
-            }
+            int[]? lenCountBuffer = null;
+            Span<int> lenCount = maxPrefixLength < 31
+                ? stackalloc int[maxPrefixLength + 1]
+                : lenCountBuffer = ArrayPool<int>.Shared.Rent(maxPrefixLength + 1);
+            lenCount = lenCount.Slice(0, maxPrefixLength + 1);
 
-            int curCode;
-            Span<int> firstCode = stackalloc int[lenCount.Length + 1]; // TODO - stackalloc? (max 32)
-            lenCount[0] = 0;
+            int[]? firstCodeBuffer = null;
+            Span<int> firstCode = lenCount.Length < 31
+                ? stackalloc int[lenCount.Length + 1]
+                : firstCodeBuffer = ArrayPool<int>.Shared.Rent(maxPrefixLength + 1);
+            firstCode = firstCode.Slice(0, lenCount.Length + 1);
 
-            // Annex B.3 3)
-            for (int curLen = 1; curLen <= lenCount.Length; curLen++)
+            try
             {
-                firstCode[curLen] = firstCode[curLen - 1] + lenCount[curLen - 1] << 1;
-                curCode = firstCode[curLen];
-                foreach (var code in codeTable)
+                foreach (Code c in codeTable)
                 {
-                    if (code.PrefixLength == curLen)
+                    lenCount[c.PrefixLength]++;
+                }
+
+                lenCount[0] = 0;
+
+                // Annex B.3 3)
+                for (int curLen = 1; curLen <= lenCount.Length; curLen++)
+                {
+                    firstCode[curLen] = firstCode[curLen - 1] + lenCount[curLen - 1] << 1;
+                    var curCode = firstCode[curLen];
+                    foreach (var code in codeTable)
                     {
-                        code.Value = curCode;
-                        curCode++;
+                        if (code.PrefixLength == curLen)
+                        {
+                            code.Value = curCode;
+                            curCode++;
+                        }
                     }
+                }
+            }
+            finally
+            {
+                if (lenCountBuffer is not null)
+                {
+                    ArrayPool<int>.Shared.Return(lenCountBuffer);
+                }
+
+                if (firstCodeBuffer is not null)
+                {
+                    ArrayPool<int>.Shared.Return(firstCodeBuffer);
                 }
             }
         }

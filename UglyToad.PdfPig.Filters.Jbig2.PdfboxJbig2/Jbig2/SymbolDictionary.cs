@@ -466,7 +466,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
                 }
 
                 var roi = new Jbig2Rectangle(startColumn, 0, newSymbolsWidths[i], heightClassHeight);
-                var symbolBitmap = Jbig2Bitmaps.Extract(roi, heightClassCollectiveBitmap);
+                var symbolBitmap = Jbig2Bitmaps.Extract(in roi, heightClassCollectiveBitmap);
                 newSymbols[i] = symbolBitmap;
                 sbSymbols.Add(symbolBitmap);
             }
