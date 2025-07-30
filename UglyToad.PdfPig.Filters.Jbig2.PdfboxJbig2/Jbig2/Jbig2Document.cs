@@ -96,7 +96,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
         /// <returns>The requested <see cref="Jbig2Page"/>.</returns>
         public Jbig2Page GetPage(int pageNumber)
         {
-            return pages.ContainsKey(pageNumber) ? pages[pageNumber] : null;
+            return pages.TryGetValue(pageNumber, out var page) ? page : null;
         }
 
         /// <summary>

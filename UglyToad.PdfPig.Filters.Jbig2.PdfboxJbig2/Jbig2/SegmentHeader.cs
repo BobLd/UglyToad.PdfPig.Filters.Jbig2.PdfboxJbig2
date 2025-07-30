@@ -141,15 +141,12 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
         {
             int countOfRTS = (int)(subInputStr.ReadBits(3) & 0xf);
 
-            byte[] retainBit;
-
             if (countOfRTS <= 4)
             {
                 // Short format
-                retainBit = new byte[5];
                 for (int i = 0; i <= 4; i++)
                 {
-                    retainBit[i] = (byte)subInputStr.ReadBit();
+                    _ = subInputStr.ReadBit();
                 }
             }
             else
@@ -158,11 +155,9 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
                 countOfRTS = (int)(subInputStr.ReadBits(29) & 0xffffffff);
 
                 int arrayLength = countOfRTS + 8 >> 3;
-                retainBit = new byte[arrayLength <<= 3];
-
                 for (int i = 0; i < arrayLength; i++)
                 {
-                    retainBit[i] = (byte)subInputStr.ReadBit();
+                    _ = subInputStr.ReadBit();
                 }
             }
             return countOfRTS;

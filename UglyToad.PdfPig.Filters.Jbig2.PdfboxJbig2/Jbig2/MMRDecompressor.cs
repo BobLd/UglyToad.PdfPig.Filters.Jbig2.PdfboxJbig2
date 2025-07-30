@@ -1,6 +1,6 @@
 #nullable disable
 
-using UglyToad;
+using System.Buffers;
 
 namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
 {
@@ -199,7 +199,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
                 if (bufferTop < 0)
                 {
                     // if we're at EOF, just supply zero-bytes
-                    buffer.AsSpan().Fill(0);
+                    buffer.AsSpan().Clear();
                     bufferTop = buffer.Length - 3;
                 }
             }
@@ -268,8 +268,8 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
             }
         }
 
-        private static int Uncompress2D(RunData runData, int[] referenceOffsets, int refRunLength,
-            int[] runOffsets, int width)
+        private static int Uncompress2D(RunData runData, Span<int> referenceOffsets, int refRunLength,
+            Span<int> runOffsets, int width)
         {
             int referenceBufferOffset = 0;
             int currentBufferOffset = 0;
@@ -502,32 +502,57 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
         {
             Jbig2Bitmap result = new Jbig2Bitmap(width, height);
 
-            int[] currentOffsets = new int[width + 5];
-            int[] referenceOffsets = new int[width + 5];
+            int len = width + 5;
+
+            int[] currentOffsetsPooled = null;
+            int[] referenceOffsetsPooled = null;
+
+            Span<int> currentOffsets = len < 32 ? stackalloc int[len] : currentOffsetsPooled = ArrayPool<int>.Shared.Rent(len);
+            Span<int> referenceOffsets = len < 32 ? stackalloc int[len] : referenceOffsetsPooled = ArrayPool<int>.Shared.Rent(len);
+
+            currentOffsets = currentOffsets.Slice(0, len);
+            referenceOffsets = referenceOffsets.Slice(0, len);
+
             referenceOffsets[0] = width;
             int refRunLength = 1;
 
-            int count;
-
-            for (int line = 0; line < height; line++)
+            try
             {
-                count = Uncompress2D(data, referenceOffsets, refRunLength, currentOffsets, width);
-
-                if (count == MMRConstants.EOF)
+                for (int line = 0; line < height; line++)
                 {
-                    break;
+                    var count = Uncompress2D(data, referenceOffsets, refRunLength, currentOffsets, width);
+
+                    if (count == MMRConstants.EOF)
+                    {
+                        break;
+                    }
+
+                    if (count > 0)
+                    {
+                        FillBitmap(result, line, currentOffsets, count);
+                    }
+
+                    // Swap lines
+                    for (int i = 0; i < len; ++i)
+                    {
+                        (referenceOffsets[i], currentOffsets[i]) = (currentOffsets[i], referenceOffsets[i]);
+                    }
+
+                    refRunLength = count;
                 }
 
-                if (count > 0)
+            }
+            finally
+            {
+                if (currentOffsetsPooled is not null)
                 {
-                    FillBitmap(result, line, currentOffsets, count);
+                    ArrayPool<int>.Shared.Return(currentOffsetsPooled);
                 }
 
-                // Swap lines
-                int[] tempOffsets = referenceOffsets;
-                referenceOffsets = currentOffsets;
-                currentOffsets = tempOffsets;
-                refRunLength = count;
+                if (referenceOffsetsPooled is not null)
+                {
+                    ArrayPool<int>.Shared.Return(referenceOffsetsPooled);
+                }
             }
 
             DetectAndSkipEOL();
@@ -553,7 +578,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
             }
         }
 
-        private static void FillBitmap(Jbig2Bitmap result, int line, int[] currentOffsets, int count)
+        private static void FillBitmap(Jbig2Bitmap result, int line, Span<int> currentOffsets, int count)
         {
             int x = 0;
             int targetByte = result.GetByteIndex(0, line);
@@ -593,7 +618,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
             }
         }
 
-        private static int Uncompress1D(RunData runData, int[] runOffsets, int width)
+        private static int Uncompress1D(RunData runData, Span<int> runOffsets, int width)
         {
             bool whiteRun = true;
             int iBitPos = 0;

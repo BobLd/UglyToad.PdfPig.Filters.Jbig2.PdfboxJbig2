@@ -80,14 +80,14 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
                 maxPrefixLength = Math.Max(maxPrefixLength, c.PrefixLength);
             }
 
-            var lenCount = new int[maxPrefixLength + 1]; // TODO - stackalloc? (max 32)
+            Span<int> lenCount = stackalloc int[maxPrefixLength + 1]; // TODO - stackalloc? (max 32)
             foreach (Code c in codeTable)
             {
                 lenCount[c.PrefixLength]++;
             }
 
             int curCode;
-            var firstCode = new int[lenCount.Length + 1]; // TODO - stackalloc? (max 32)
+            Span<int> firstCode = stackalloc int[lenCount.Length + 1]; // TODO - stackalloc? (max 32)
             lenCount[0] = 0;
 
             // Annex B.3 3)

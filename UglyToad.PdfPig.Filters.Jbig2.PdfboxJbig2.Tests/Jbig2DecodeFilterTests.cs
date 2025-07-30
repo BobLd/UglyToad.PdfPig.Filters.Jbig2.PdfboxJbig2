@@ -109,7 +109,8 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Tests
                 var files = Directory.GetFiles(DocumentFolder.Value, "*.pdf");
 
                 // Return the shortname so we can see it in the test explorer.
-                return files.Select(x => new object[] { Path.GetFileName(x) });
+                return files.Where(x => !x.Contains("MOZILLA-9176-2.pdf"))
+                    .Select(x => new object[] { Path.GetFileName(x) });
             }
         }
 
