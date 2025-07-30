@@ -4,7 +4,6 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
 {
     using System;
     using System.Collections.Generic;
-    using UglyToad.PdfPig.Filters.Jbig2;
 
     /// <summary>
     /// This class represents the data of segment type "Symbol dictionary". Parsing is described in

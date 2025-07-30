@@ -1,7 +1,5 @@
 ﻿#nullable disable
 
-using UglyToad;
-
 namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
 {
     /// <summary>
@@ -12,7 +10,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
     internal sealed class GenericRegion : IRegion
     {
         private SubInputStream subInputStream;
-        private long dataHeaderOffset = 0;
+        private readonly long dataHeaderOffset = 0;
         private long dataHeaderLength;
         private long dataOffset;
         private long dataLength;

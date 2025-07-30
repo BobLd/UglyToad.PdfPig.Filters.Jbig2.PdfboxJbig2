@@ -1,7 +1,5 @@
 ﻿#nullable disable
 
-using UglyToad;
-
 namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
 {
     using System;
@@ -290,9 +288,9 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
 
             if (shiftOffset >= 0)
             {
-                c1 = (short)((shiftOffset >= 8 ? 0 : (int)((uint)w1 >> shiftOffset)) & 0x07);
-                c2 = (short)((shiftOffset >= 8 ? 0 : (int)((uint)w2 >> shiftOffset)) & 0x07);
-                c3 = (short)((shiftOffset >= 8 ? 0 : (int)((uint)w3 >> shiftOffset)) & 0x07);
+                c1 = (short)((shiftOffset >= 8 ? 0 : w1 >>> shiftOffset) & 0x07);
+                c2 = (short)((shiftOffset >= 8 ? 0 : w2 >>> shiftOffset) & 0x07);
+                c3 = (short)((shiftOffset >= 8 ? 0 : w3 >>> shiftOffset) & 0x07);
 
                 if (shiftOffset == 6 && modRefByteIdx > 1)
                 {

@@ -1,7 +1,5 @@
 ﻿#nullable disable
 
-using UglyToad;
-
 namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
 {
     using System;
@@ -17,7 +15,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
 
         private SubInputStream subInputStream;
         private SegmentHeader segmentHeader;
-        private long dataHeaderOffset = 0;
+        private readonly long dataHeaderOffset = 0;
         private long dataHeaderLength;
         private long dataOffset;
         private long dataLength;

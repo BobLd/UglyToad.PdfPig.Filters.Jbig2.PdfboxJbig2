@@ -1,7 +1,5 @@
 ﻿#nullable disable
 
-using UglyToad;
-
 namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
 {
     using System.Collections.Generic;

@@ -1,7 +1,5 @@
 ﻿#nullable disable
 
-using UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2;
-
 namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
 {
     using System;
@@ -124,12 +122,12 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
 
         public override string ToString()
         {
-            var sb = new StringBuilder("\n");
+            var sb = new StringBuilder(Environment.NewLine);
 
             Pad(sb);
-            sb.Append("0: ").Append(zero).Append("\n");
+            sb.Append("0: ").Append(zero).Append(Environment.NewLine);
             Pad(sb);
-            sb.Append("1: ").Append(one).Append("\n");
+            sb.Append("1: ").Append(one).Append(Environment.NewLine);
 
             return sb.ToString();
         }

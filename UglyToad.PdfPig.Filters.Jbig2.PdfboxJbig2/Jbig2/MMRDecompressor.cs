@@ -243,7 +243,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
 
             public override int GetHashCode()
             {
-                return (BitLength, CodeWord, RunLength).GetHashCode();
+                return HashCode.Combine(BitLength, CodeWord, RunLength);
             }
         }
 
@@ -449,19 +449,19 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
                 var strBuf = new StringBuilder();
                 strBuf.Append("whiteRun           = ");
                 strBuf.Append(whiteRun);
-                strBuf.Append("\n");
+                strBuf.Append(Environment.NewLine);
                 strBuf.Append("code               = ");
                 strBuf.Append(code);
-                strBuf.Append("\n");
+                strBuf.Append(Environment.NewLine);
                 strBuf.Append("refOffset          = ");
                 strBuf.Append(referenceBufferOffset);
-                strBuf.Append("\n");
+                strBuf.Append(Environment.NewLine);
                 strBuf.Append("curOffset          = ");
                 strBuf.Append(currentBufferOffset);
-                strBuf.Append("\n");
+                strBuf.Append(Environment.NewLine);
                 strBuf.Append("bitPos             = ");
                 strBuf.Append(currentLineBitPosition);
-                strBuf.Append("\n");
+                strBuf.Append(Environment.NewLine);
                 strBuf.Append("runData.offset = ");
                 strBuf.Append(runData.Offset);
                 strBuf.Append(" ( byte:");
