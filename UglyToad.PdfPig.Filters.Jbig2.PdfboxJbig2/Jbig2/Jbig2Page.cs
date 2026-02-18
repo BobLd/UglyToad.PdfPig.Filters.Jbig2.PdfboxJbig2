@@ -118,7 +118,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
                 pageBitmap.ByteArray.AsSpan().Fill(0xff);
             }
 
-            // Count regions once up-front to avoid a full segment scan per region in FitsPage.
+            // Count once so FitsPage does not re-scan segments on every region.
             int regionCount = CountRegions();
 
             foreach (SegmentHeader s in segments.Values)

@@ -52,7 +52,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
         /// </summary>
         public bool IsGbUseExtTemplate { get; private set; }
 
-        // The raw input stream — used for length checks without going through SubInputStream.
+        // The raw input stream — stored separately so ReachedEndOfStream can query its length directly.
         private readonly IImageInputStream inputStream;
 
         // This is the source data stream wrapped into a SubInputStream.
@@ -264,12 +264,11 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
         /// <summary>
         /// This method checks, if the stream is at its end to avoid
         /// <see cref="EndOfStreamException"/>s.
+        /// A segment header needs at least 4 bytes to begin; if fewer remain we are done.
         /// </summary>
         /// <returns>true, if end of stream reached. false, if there are more bytes to read</returns>
         private bool ReachedEndOfStream(long offset)
         {
-            // A segment header requires at least 4 bytes. Avoid exception-based EOF detection
-            // by comparing directly against the known stream length.
             return offset + 4 > inputStream.Length;
         }
     }

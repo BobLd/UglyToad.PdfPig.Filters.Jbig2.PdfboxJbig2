@@ -1,6 +1,11 @@
 namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
 {
     using System;
+#if NET
+    using System.Runtime.CompilerServices;
+    using System.Runtime.InteropServices;
+    using System.Runtime.Intrinsics;
+#endif
 
     internal static class Jbig2Bitmaps
     {
@@ -36,16 +41,16 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
                 }
                 else if (upShift == 0)
                 {
-                    for (int x = srcLineStartIdx; x <= srcLineEndIdx; x++)
+                    // Byte-aligned: bulk-copy the row, then fix up the last byte if padding applies.
+                    int lineLen = srcLineEndIdx - srcLineStartIdx + 1;
+                    if (usePadding)
                     {
-                        byte value = src.GetByte(srcIdx++);
-
-                        if (x == srcLineEndIdx && usePadding)
-                        {
-                            value = Unpad(padding, value);
-                        }
-
-                        dst.SetByte(dstIdx++, value);
+                        src.ByteArray.AsSpan(srcIdx, lineLen - 1).CopyTo(dst.ByteArray.AsSpan(dstIdx, lineLen - 1));
+                        dst.ByteArray[dstIdx + lineLen - 1] = Unpad(padding, src.ByteArray[srcIdx + lineLen - 1]);
+                    }
+                    else
+                    {
+                        src.ByteArray.AsSpan(srcIdx, lineLen).CopyTo(dst.ByteArray.AsSpan(dstIdx, lineLen));
                     }
                 }
                 else
@@ -211,24 +216,33 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
                 int dstStartIdx, int srcStartIdx, int srcEndIdx, CombinationOperator op)
         {
             int count = srcEndIdx - srcStartIdx + 1;
+            ReadOnlySpan<byte> srcSpan = src.ByteArray;
+            Span<byte> dstSpan = dst.ByteArray;
 
-            // Fast path: REPLACE just copies source bytes directly, no per-byte combine needed.
             if (op == CombinationOperator.REPLACE)
             {
-                for (int dstLine = startLine; dstLine < lastLine; dstLine++,
+                // Span.CopyTo maps to a vectorized memcpy in the JIT — no per-byte overhead.
+                for (int line = startLine; line < lastLine; line++,
                      dstStartIdx += dst.RowStride, srcStartIdx += src.RowStride)
                 {
-                    Array.Copy(src.ByteArray, srcStartIdx, dst.ByteArray, dstStartIdx, count);
+                    srcSpan.Slice(srcStartIdx, count).CopyTo(dstSpan.Slice(dstStartIdx, count));
                 }
                 return;
             }
 
+#if NET
+            // Explicit SIMD for OR / AND / XOR / XNOR on .NET 6+ targets.
+            for (int line = startLine; line < lastLine; line++,
+                 dstStartIdx += dst.RowStride, srcStartIdx += src.RowStride)
+            {
+                CombineRowVectorized(srcSpan.Slice(srcStartIdx, count), dstSpan.Slice(dstStartIdx, count), op);
+            }
+#else
+            // Scalar fallback for older target frameworks.
             for (int dstLine = startLine; dstLine < lastLine; dstLine++, dstStartIdx += dst
                     .RowStride, srcStartIdx += src.RowStride, srcEndIdx += src.RowStride)
             {
                 int dstIdx = dstStartIdx;
-
-                // Go through the bytes in a line of the Symbol
                 for (int srcIdx = srcStartIdx; srcIdx <= srcEndIdx; srcIdx++)
                 {
                     byte oldByte = dst.GetByte(dstIdx);
@@ -236,6 +250,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
                     dst.SetByte(dstIdx++, CombineBytes(oldByte, newByte, op));
                 }
             }
+#endif
         }
 
         private static void BlitSpecialShifted(Jbig2Bitmap src, Jbig2Bitmap dst, int startLine, int lastLine,
@@ -302,5 +317,88 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
                 }
             }
         }
+
+#if NET
+        /// <summary>
+        /// Combines <paramref name="src"/> into <paramref name="dst"/> element-wise using the
+        /// specified operator, using SIMD (Vector128 / Vector256) where available and falling back
+        /// to a scalar loop for the remaining tail bytes.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void CombineRowVectorized(ReadOnlySpan<byte> src, Span<byte> dst, CombinationOperator op)
+        {
+            ref byte srcRef = ref MemoryMarshal.GetReference(src);
+            ref byte dstRef = ref MemoryMarshal.GetReference(dst);
+            int length = dst.Length;
+            int i = 0;
+
+            if (Vector256.IsHardwareAccelerated && length >= Vector256<byte>.Count)
+            {
+                int limit = length - Vector256<byte>.Count;
+                switch (op)
+                {
+                    case CombinationOperator.OR:
+                        for (; i <= limit; i += Vector256<byte>.Count)
+                            Vector256.StoreUnsafe(
+                                Vector256.LoadUnsafe(ref dstRef, (nuint)i) | Vector256.LoadUnsafe(ref srcRef, (nuint)i),
+                                ref dstRef, (nuint)i);
+                        break;
+                    case CombinationOperator.AND:
+                        for (; i <= limit; i += Vector256<byte>.Count)
+                            Vector256.StoreUnsafe(
+                                Vector256.LoadUnsafe(ref dstRef, (nuint)i) & Vector256.LoadUnsafe(ref srcRef, (nuint)i),
+                                ref dstRef, (nuint)i);
+                        break;
+                    case CombinationOperator.XOR:
+                        for (; i <= limit; i += Vector256<byte>.Count)
+                            Vector256.StoreUnsafe(
+                                Vector256.LoadUnsafe(ref dstRef, (nuint)i) ^ Vector256.LoadUnsafe(ref srcRef, (nuint)i),
+                                ref dstRef, (nuint)i);
+                        break;
+                    case CombinationOperator.XNOR:
+                        for (; i <= limit; i += Vector256<byte>.Count)
+                            Vector256.StoreUnsafe(
+                                ~(Vector256.LoadUnsafe(ref dstRef, (nuint)i) ^ Vector256.LoadUnsafe(ref srcRef, (nuint)i)),
+                                ref dstRef, (nuint)i);
+                        break;
+                }
+            }
+            else if (Vector128.IsHardwareAccelerated && length >= Vector128<byte>.Count)
+            {
+                int limit = length - Vector128<byte>.Count;
+                switch (op)
+                {
+                    case CombinationOperator.OR:
+                        for (; i <= limit; i += Vector128<byte>.Count)
+                            Vector128.StoreUnsafe(
+                                Vector128.LoadUnsafe(ref dstRef, (nuint)i) | Vector128.LoadUnsafe(ref srcRef, (nuint)i),
+                                ref dstRef, (nuint)i);
+                        break;
+                    case CombinationOperator.AND:
+                        for (; i <= limit; i += Vector128<byte>.Count)
+                            Vector128.StoreUnsafe(
+                                Vector128.LoadUnsafe(ref dstRef, (nuint)i) & Vector128.LoadUnsafe(ref srcRef, (nuint)i),
+                                ref dstRef, (nuint)i);
+                        break;
+                    case CombinationOperator.XOR:
+                        for (; i <= limit; i += Vector128<byte>.Count)
+                            Vector128.StoreUnsafe(
+                                Vector128.LoadUnsafe(ref dstRef, (nuint)i) ^ Vector128.LoadUnsafe(ref srcRef, (nuint)i),
+                                ref dstRef, (nuint)i);
+                        break;
+                    case CombinationOperator.XNOR:
+                        for (; i <= limit; i += Vector128<byte>.Count)
+                            Vector128.StoreUnsafe(
+                                ~(Vector128.LoadUnsafe(ref dstRef, (nuint)i) ^ Vector128.LoadUnsafe(ref srcRef, (nuint)i)),
+                                ref dstRef, (nuint)i);
+                        break;
+                }
+            }
+
+            // Scalar tail for bytes that don't fill a full vector.
+            for (; i < length; i++)
+                Unsafe.Add(ref dstRef, i) = CombineBytes(Unsafe.Add(ref dstRef, i), Unsafe.Add(ref srcRef, i), op);
+        }
+#endif
     }
 }
