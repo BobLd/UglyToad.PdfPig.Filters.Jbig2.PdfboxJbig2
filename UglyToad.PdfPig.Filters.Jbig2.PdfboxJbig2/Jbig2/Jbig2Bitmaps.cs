@@ -210,6 +210,19 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
         private static void BlitUnshifted(Jbig2Bitmap src, Jbig2Bitmap dst, int startLine, int lastLine,
                 int dstStartIdx, int srcStartIdx, int srcEndIdx, CombinationOperator op)
         {
+            int count = srcEndIdx - srcStartIdx + 1;
+
+            // Fast path: REPLACE just copies source bytes directly, no per-byte combine needed.
+            if (op == CombinationOperator.REPLACE)
+            {
+                for (int dstLine = startLine; dstLine < lastLine; dstLine++,
+                     dstStartIdx += dst.RowStride, srcStartIdx += src.RowStride)
+                {
+                    Array.Copy(src.ByteArray, srcStartIdx, dst.ByteArray, dstStartIdx, count);
+                }
+                return;
+            }
+
             for (int dstLine = startLine; dstLine < lastLine; dstLine++, dstStartIdx += dst
                     .RowStride, srcStartIdx += src.RowStride, srcEndIdx += src.RowStride)
             {

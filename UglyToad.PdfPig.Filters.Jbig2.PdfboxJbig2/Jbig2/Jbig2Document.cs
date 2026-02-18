@@ -52,6 +52,9 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
         /// </summary>
         public bool IsGbUseExtTemplate { get; private set; }
 
+        // The raw input stream — used for length checks without going through SubInputStream.
+        private readonly IImageInputStream inputStream;
+
         // This is the source data stream wrapped into a SubInputStream.
         private readonly SubInputStream subInputStream;
 
@@ -72,6 +75,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
                 throw new ArgumentNullException(nameof(input), " must not be null");
             }
 
+            inputStream = input;
             subInputStream = new SubInputStream(input, 0, long.MaxValue);
             GlobalSegments = globals;
 
@@ -259,21 +263,14 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
 
         /// <summary>
         /// This method checks, if the stream is at its end to avoid
-        /// <see cref="EndOfStreamException"/>s and reads 32 bits.
+        /// <see cref="EndOfStreamException"/>s.
         /// </summary>
         /// <returns>true, if end of stream reached. false, if there are more bytes to read</returns>
         private bool ReachedEndOfStream(long offset)
         {
-            try
-            {
-                subInputStream.Seek(offset);
-                subInputStream.ReadBits(32);
-                return false;
-            }
-            catch (EndOfStreamException)
-            {
-                return true;
-            }
+            // A segment header requires at least 4 bytes. Avoid exception-based EOF detection
+            // by comparing directly against the known stream length.
+            return offset + 4 > inputStream.Length;
         }
     }
 }

@@ -457,19 +457,14 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
         private void DecodeHeightClassBitmap(Jbig2Bitmap heightClassCollectiveBitmap,
                 int heightClassFirstSymbol, int heightClassHeight, int[] newSymbolsWidths)
         {
+            int startColumn = 0;
             for (int i = heightClassFirstSymbol; i < amountOfDecodedSymbols; i++)
             {
-                int startColumn = 0;
-
-                for (int j = heightClassFirstSymbol; j <= i - 1; j++)
-                {
-                    startColumn += newSymbolsWidths[j];
-                }
-
                 var roi = new Jbig2Rectangle(startColumn, 0, newSymbolsWidths[i], heightClassHeight);
                 var symbolBitmap = Jbig2Bitmaps.Extract(roi, heightClassCollectiveBitmap);
                 newSymbols[i] = symbolBitmap;
                 sbSymbols.Add(symbolBitmap);
+                startColumn += newSymbolsWidths[i];
             }
         }
 

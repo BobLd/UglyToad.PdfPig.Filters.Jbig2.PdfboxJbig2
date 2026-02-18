@@ -118,6 +118,9 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
                 pageBitmap.ByteArray.AsSpan().Fill(0xff);
             }
 
+            // Count regions once up-front to avoid a full segment scan per region in FitsPage.
+            int regionCount = CountRegions();
+
             foreach (SegmentHeader s in segments.Values)
             {
                 // Page 79, 5)
@@ -135,7 +138,7 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
 
                         Jbig2Bitmap regionBitmap = r.GetRegionBitmap();
 
-                        if (FitsPage(pageInformation, regionBitmap))
+                        if (FitsPage(pageInformation, regionBitmap, regionCount))
                         {
                             pageBitmap = regionBitmap;
                         }
@@ -158,9 +161,9 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
         /// the region's bitmap as the page's bitmap. Otherwise we have to blit the smaller region's bitmap into the page's
         /// bitmap.
         /// </summary>
-        private bool FitsPage(PageInformation pageInformation, Jbig2Bitmap regionBitmap)
+        private static bool FitsPage(PageInformation pageInformation, Jbig2Bitmap regionBitmap, int regionCount)
         {
-            return CountRegions() == 1 && pageInformation.DefaultPixelValue == 0
+            return regionCount == 1 && pageInformation.DefaultPixelValue == 0
                     && pageInformation.BitmapWidth == regionBitmap.Width
                     && pageInformation.BitmapHeight == regionBitmap.Height;
         }
