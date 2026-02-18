@@ -102,10 +102,11 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
         private static MemoryStream GetMemoryStream(ReadOnlySpan<byte> bytes)
         {
             var memoryStream = new MemoryStream(bytes.Length);
-            foreach (var b in bytes)
-            {
-                memoryStream.WriteByte(b);
-            }
+#if NET
+            memoryStream.Write(bytes);
+#else
+            memoryStream.Write(bytes.ToArray(), 0, bytes.Length);
+#endif
             memoryStream.Position = 0;
             return memoryStream;
         }

@@ -80,21 +80,27 @@ namespace UglyToad.PdfPig.Filters.Jbig2.PdfboxJbig2.Jbig2
                 maxPrefixLength = Math.Max(maxPrefixLength, c.PrefixLength);
             }
 
-            var lenCount = new int[maxPrefixLength + 1]; // TODO - stackalloc? (max 32)
+            // JBIG2 prefix codes are at most 32 bits; use stack memory for these small arrays.
+            Span<int> lenCount = maxPrefixLength + 1 <= 64
+                ? stackalloc int[maxPrefixLength + 1]
+                : new int[maxPrefixLength + 1];
+
             foreach (Code c in codeTable)
             {
                 lenCount[c.PrefixLength]++;
             }
 
-            int curCode;
-            var firstCode = new int[lenCount.Length + 1]; // TODO - stackalloc? (max 32)
+            Span<int> firstCode = maxPrefixLength + 2 <= 64
+                ? stackalloc int[maxPrefixLength + 2]
+                : new int[maxPrefixLength + 2];
+
             lenCount[0] = 0;
 
             // Annex B.3 3)
             for (int curLen = 1; curLen <= lenCount.Length; curLen++)
             {
                 firstCode[curLen] = firstCode[curLen - 1] + lenCount[curLen - 1] << 1;
-                curCode = firstCode[curLen];
+                int curCode = firstCode[curLen];
                 foreach (var code in codeTable)
                 {
                     if (code.PrefixLength == curLen)
